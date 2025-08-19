@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary;
 
@@ -6,6 +7,8 @@ namespace DungeonSlime;
 
 public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 {
+    private Texture2D _logo = null!;
+    
     protected override void Initialize()
     {
         // TODO: Add your initialization logic here
@@ -15,7 +18,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
     protected override void LoadContent()
     {
-        // TODO: use this.Content to load your game content here
+        _logo = Content.Load<Texture2D>("images/logo");
         
         base.LoadContent();
     }
@@ -35,7 +38,9 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        // TODO: Add your drawing code here
+        SpriteBatch.Begin();
+        SpriteBatch.Draw(_logo, Vector2.Zero, Color.White);
+        SpriteBatch.End();
 
         base.Draw(gameTime);
     }
