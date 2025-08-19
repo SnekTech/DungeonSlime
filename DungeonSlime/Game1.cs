@@ -8,7 +8,7 @@ namespace DungeonSlime;
 public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 {
     private Texture2D _logo = null!;
-    
+
     protected override void Initialize()
     {
         // TODO: Add your initialization logic here
@@ -19,7 +19,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     protected override void LoadContent()
     {
         _logo = Content.Load<Texture2D>("images/logo");
-        
+
         base.LoadContent();
     }
 
@@ -38,9 +38,40 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        SpriteBatch.Begin();
-        SpriteBatch.Draw(_logo, Vector2.Zero, Color.White);
-        SpriteBatch.End();
+        var (windowWidth, windowHeight) = Window.ClientBounds.Size;
+
+        var iconSourceRect = new Rectangle(0, 0, 128, 128);
+        var wordmarkSourceRect = new Rectangle(150, 34, 458, 58);
+
+        using (SpriteBatch.DrawContext(SpriteSortMode.FrontToBack))
+        {
+            var position = new Vector2(windowWidth, windowHeight) * 0.5f;
+            var iconOrigin = iconSourceRect.Size.ToVector2() * 0.5f;
+            SpriteBatch.Draw(
+                _logo,
+                position,
+                iconSourceRect,
+                Color.White,
+                0f,
+                iconOrigin,
+                1.0f,
+                SpriteEffects.None,
+                1f
+            );
+
+            var wordmarkOrigin = wordmarkSourceRect.Size.ToVector2() * 0.5f;
+            SpriteBatch.Draw(
+                _logo,
+                position,
+                wordmarkSourceRect,
+                Color.White,
+                0f,
+                wordmarkOrigin,
+                1.0f,
+                SpriteEffects.None,
+                0f
+            );
+        }
 
         base.Draw(gameTime);
     }
