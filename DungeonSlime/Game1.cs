@@ -7,7 +7,7 @@ namespace DungeonSlime;
 public class Game1 : Game
 {
     private GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
+    private SpriteBatch _spriteBatch = null!;
 
     public Game1()
     {
@@ -43,7 +43,7 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(Color.MonoGameOrange);
 
         // TODO: Add your drawing code here
 
