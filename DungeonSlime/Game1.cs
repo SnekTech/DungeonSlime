@@ -2,12 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary;
+using MonoGameLibrary.Graphics;
 
 namespace DungeonSlime;
 
 public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 {
-    private Texture2D _logo = null!;
+    private TextureRegion? _slime;
+    private TextureRegion? _bat;
 
     protected override void Initialize()
     {
@@ -18,7 +20,16 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
     protected override void LoadContent()
     {
-        _logo = Content.Load<Texture2D>("images/logo");
+        // var atlasTexture = Content.Load<Texture2D>("images/atlas");
+        // var atlas = new TextureAtlas { Texture = atlasTexture };
+        
+        // atlas.AddRegion("slime", new Rectangle(0, 0, 20, 20));
+        // atlas.AddRegion("bat", new Rectangle(20, 0, 20, 20));
+
+        var atlas = TextureAtlas.FromFile(Content, "images/atlas-definition.xml");
+
+        _slime = atlas.GetRegion("slime");
+        _bat = atlas.GetRegion("bat");
 
         base.LoadContent();
     }
@@ -38,39 +49,14 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        var (windowWidth, windowHeight) = Window.ClientBounds.Size;
-
-        var iconSourceRect = new Rectangle(0, 0, 128, 128);
-        var wordmarkSourceRect = new Rectangle(150, 34, 458, 58);
-
-        using (SpriteBatch.DrawContext(SpriteSortMode.FrontToBack))
+        using (SpriteBatch.DrawContext(samplerState: SamplerState.PointClamp))
         {
-            var position = new Vector2(windowWidth, windowHeight) * 0.5f;
-            var iconOrigin = iconSourceRect.Size.ToVector2() * 0.5f;
-            SpriteBatch.Draw(
-                _logo,
-                position,
-                iconSourceRect,
-                Color.White,
-                0f,
-                iconOrigin,
-                1.0f,
-                SpriteEffects.None,
-                1f
-            );
-
-            var wordmarkOrigin = wordmarkSourceRect.Size.ToVector2() * 0.5f;
-            SpriteBatch.Draw(
-                _logo,
-                position,
-                wordmarkSourceRect,
-                Color.White,
-                0f,
-                wordmarkOrigin,
-                1.0f,
-                SpriteEffects.None,
-                0f
-            );
+            if (_slime is not null && _bat is not null)
+            {
+                _slime.Draw(SpriteBatch, Vector2.Zero, Color.White, 0.0f, Vector2.One, 4.0f, SpriteEffects.None, 0f);
+                _bat.Draw(SpriteBatch, new Vector2(_slime.Width * 4f + 10, 0), Color.White, 0f, Vector2.One, 4.0f,
+                    SpriteEffects.None, 0f);
+            }
         }
 
         base.Draw(gameTime);
