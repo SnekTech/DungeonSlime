@@ -8,8 +8,8 @@ namespace DungeonSlime;
 
 public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 {
-    private TextureRegion? _slime;
-    private TextureRegion? _bat;
+    private Sprite _slime = null!;
+    private Sprite _bat = null!;
 
     protected override void Initialize()
     {
@@ -22,14 +22,16 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     {
         // var atlasTexture = Content.Load<Texture2D>("images/atlas");
         // var atlas = new TextureAtlas { Texture = atlasTexture };
-        
+
         // atlas.AddRegion("slime", new Rectangle(0, 0, 20, 20));
         // atlas.AddRegion("bat", new Rectangle(20, 0, 20, 20));
 
         var atlas = TextureAtlas.FromFile(Content, "images/atlas-definition.xml");
 
-        _slime = atlas.GetRegion("slime");
-        _bat = atlas.GetRegion("bat");
+        _slime = atlas.CreateSprite("slime");
+        _slime.Scale = new Vector2(4f, 4f);
+        _bat = atlas.CreateSprite("bat");
+        _bat.Scale = new Vector2(4f, 4f);
 
         base.LoadContent();
     }
@@ -51,12 +53,8 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
         using (SpriteBatch.DrawContext(samplerState: SamplerState.PointClamp))
         {
-            if (_slime is not null && _bat is not null)
-            {
-                _slime.Draw(SpriteBatch, Vector2.Zero, Color.White, 0.0f, Vector2.One, 4.0f, SpriteEffects.None, 0f);
-                _bat.Draw(SpriteBatch, new Vector2(_slime.Width * 4f + 10, 0), Color.White, 0f, Vector2.One, 4.0f,
-                    SpriteEffects.None, 0f);
-            }
+            _slime.Draw(SpriteBatch, Vector2.One);
+            _bat.Draw(SpriteBatch, new Vector2(_slime.Width + 10, 0));
         }
 
         base.Draw(gameTime);

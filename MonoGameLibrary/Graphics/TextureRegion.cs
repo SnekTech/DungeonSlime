@@ -1,14 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Dumpify;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoGameLibrary.Graphics;
 
-/// <summary>
-/// Represents a rect region with a texture.
-/// </summary>
 public class TextureRegion
 {
-    public required Texture2D Texture { get; set; }
+    public Texture2D? Texture { get; set; }
     public Rectangle SourceRectangle { get; set; }
 
     public int Width => SourceRectangle.Width;
@@ -37,6 +35,12 @@ public class TextureRegion
     public void Draw(SpriteBatch spriteBatch, Vector2 position, Color color, float rotation, Vector2 origin,
         Vector2 scale, SpriteEffects effects, float layerDepth)
     {
+        if (Texture is null)
+        {
+            $"texture {Texture} is null, can't draw".Dump();
+            return;
+        }
+
         spriteBatch.Draw(
             Texture,
             position,
@@ -49,4 +53,6 @@ public class TextureRegion
             layerDepth
         );
     }
+
+    public static TextureRegion Empty => new();
 }

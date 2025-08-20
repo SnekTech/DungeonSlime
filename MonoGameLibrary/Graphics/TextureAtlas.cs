@@ -11,7 +11,7 @@ public class TextureAtlas
 {
     private readonly Dictionary<string, TextureRegion> _regions = [];
 
-    public required Texture2D Texture { get; set; }
+    public Texture2D? Texture { get; set; }
 
     public void AddRegion(string name, Rectangle rect)
     {
@@ -24,6 +24,12 @@ public class TextureAtlas
     public bool RemoveRegion(string name) => _regions.Remove(name);
 
     public void Clear() => _regions.Clear();
+
+    public Sprite CreateSprite(string regionName)
+    {
+        var region = GetRegion(regionName) ?? TextureRegion.Empty;
+        return new Sprite { Region = region };
+    }
 
     public static TextureAtlas FromFile(ContentManager content, string fileName)
     {
