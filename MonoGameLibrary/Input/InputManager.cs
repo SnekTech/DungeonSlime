@@ -7,7 +7,7 @@ public class InputManager
     private const int GamePadCount = 4;
     public KeyboardInfo Keyboard { get; private set; }
     public MouseInfo Mouse { get; private set; }
-    public GamePadInfo[] GamePads { get; }
+    private GamePadInfo[] GamePads { get; }
 
     public InputManager()
     {
@@ -31,4 +31,6 @@ public class InputManager
             GamePads[i].Update(gameTime);
         }
     }
+
+    public GamePadInfo GetGamePad(PlayerIndex playerIndex) => GamePads[(int)playerIndex];
 }

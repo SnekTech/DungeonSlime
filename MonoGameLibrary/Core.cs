@@ -1,8 +1,8 @@
-﻿
-using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using MonoGameLibrary.Input;
 
 namespace MonoGameLibrary;
 
@@ -34,6 +34,10 @@ public class Core : Game
     /// Gets the content manager used to load global assets.
     /// </summary>
     public static new ContentManager Content { get; private set; } = null!;
+
+    public static InputManager Input { get; private set; } = null!;
+
+    public static bool ExitOnEscape { get; set; } = true;
 
     /// <summary>
     /// Creates a new Core instance.
@@ -88,5 +92,19 @@ public class Core : Game
 
         // Create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
+
+        Input = new InputManager();
+    }
+
+    protected override void Update(GameTime gameTime)
+    {
+        Input.Update(gameTime);
+
+        if (ExitOnEscape && Input.Keyboard.IsKeyDown(Keys.Escape))
+        {
+            Exit();
+        }
+
+        base.Update(gameTime);
     }
 }
