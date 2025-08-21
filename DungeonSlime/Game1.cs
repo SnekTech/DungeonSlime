@@ -26,6 +26,12 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     private SoundEffect _collectSoundEffect = null!;
     private Song _themeSong = null!;
 
+    private SpriteFont _font = null!;
+
+    private int _score;
+    private Vector2 _scoreTextPosition;
+    private Vector2 _scoreTextOrigin;
+
     protected override void Initialize()
     {
         base.Initialize();
@@ -44,8 +50,13 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         _batPosition = new Vector2(_roomBounds.Left, _roomBounds.Top);
 
         AssignRandomBatVelocity();
-        
+
         Audio.PlaySong(_themeSong);
+
+        _scoreTextPosition = new Vector2(_roomBounds.Left, _tileMap.TileHeight * 0.5f);
+
+        var scoreTextOriginY = _font.MeasureString("Score").Y * 0.5f;
+        _scoreTextOrigin = new Vector2(0, scoreTextOriginY);
     }
 
     protected override void LoadContent()
@@ -63,6 +74,8 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         _bounceSoundEffect = Content.Load<SoundEffect>("audio/bounce");
         _collectSoundEffect = Content.Load<SoundEffect>("audio/collect");
         _themeSong = Content.Load<Song>("audio/theme");
+
+        _font = Content.Load<SpriteFont>("fonts/04B_30");
     }
 
     protected override void Update(GameTime gameTime)
@@ -105,21 +118,21 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
         void HandleSlimeEatTheBat()
         {
-            if (slimeBounds.Intersects(batBounds))
-            {
-                var tileWidth = (int)_bat.Width;
-                var totalColumns = screenWidth / tileWidth;
-                var totalRows = screenHeight / tileWidth;
+            if (!slimeBounds.Intersects(batBounds)) return;
 
-                var randomColumn = Random.Shared.Next(0, totalColumns);
-                var randomRow = Random.Shared.Next(0, totalRows);
+            var tileWidth = (int)_bat.Width;
+            var totalColumns = screenWidth / tileWidth;
+            var totalRows = screenHeight / tileWidth;
 
-                _batPosition = new Vector2(randomColumn * _bat.Width, randomRow * _bat.Height);
+            var randomColumn = Random.Shared.Next(0, totalColumns);
+            var randomRow = Random.Shared.Next(0, totalRows);
 
-                AssignRandomBatVelocity();
+            _batPosition = new Vector2(randomColumn * _bat.Width, randomRow * _bat.Height);
 
-                Audio.PlaySoundEffect(_collectSoundEffect);
-            }
+            AssignRandomBatVelocity();
+
+            Audio.PlaySoundEffect(_collectSoundEffect);
+            _score += 100;
         }
 
         void CheckAndMoveBackSlimeIfOffScreen()
@@ -191,7 +204,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     {
         CheckMoveInput();
         CheckAudioInput();
-        
+
         return;
 
         void CheckMoveInput()
@@ -297,6 +310,18 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
             _tileMap.Draw(SpriteBatch);
             _slime.Draw(SpriteBatch, _slimePosition);
             _bat.Draw(SpriteBatch, _batPosition);
+
+            SpriteBatch.DrawString(
+                _font,
+                $"Score: {_score}",
+                _scoreTextPosition,
+                Color.White,
+                0,
+                _scoreTextOrigin,
+                1,
+                SpriteEffects.None,
+                0
+            );
         }
 
         base.Draw(gameTime);
