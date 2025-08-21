@@ -14,11 +14,16 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     private Vector2 _slimePosition;
     private const float MovementSpeed = 5;
 
+    private Vector2 _batPosition;
+    private Vector2 _batVelocity;
+
     protected override void Initialize()
     {
-        // TODO: Add your initialization logic here
-
         base.Initialize();
+
+        _batPosition = new Vector2(_slime.Width + 10, 0);
+
+        AssignRandomBatVelocity();
     }
 
     protected override void LoadContent()
@@ -39,7 +44,115 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         CheckKeyboardInput();
         CheckGamePadInput();
 
+        var (screenWidth, screenHeight) = GraphicsDevice.Resolution();
+        var screenBounds = new Rectangle(0, 0, screenWidth, screenHeight);
+
+        var slimeBoundsCenter = new Vector2(
+            _slimePosition.X + _slime.Width * 0.5f,
+            _slimePosition.Y + _slime.Height * 0.5f
+        ).ToPoint();
+        var slimeRadius = (int)(_slime.Width * 0.5f);
+        var slimeBounds = new Circle(slimeBoundsCenter, slimeRadius);
+
+        CheckAndMoveBackSlimeIfOffScreen();
+
+        var newBatPosition = _batPosition + _batVelocity;
+
+        var batBoundsCenter = new Vector2(
+            _batPosition.X + _bat.Width * 0.5f,
+            _batPosition.Y + _bat.Height * 0.5f
+        ).ToPoint();
+        var batRadius = _bat.Width * 0.5f;
+        var batBounds = new Circle(batBoundsCenter, (int)batRadius);
+
+        var normal = Vector2.Zero;
+
+        CheckAndReflectBatIfOffScreen();
+
+        HandleSlimeEatTheBat();
+
         base.Update(gameTime);
+
+        return;
+
+        void HandleSlimeEatTheBat()
+        {
+            if (slimeBounds.Intersects(batBounds))
+            {
+                var tileWidth = (int)_bat.Width;
+                var totalColumns = screenWidth / tileWidth;
+                var totalRows = screenHeight / tileWidth;
+
+                var randomColumn = Random.Shared.Next(0, totalColumns);
+                var randomRow = Random.Shared.Next(0, totalRows);
+
+                _batPosition = new Vector2(randomColumn * _bat.Width, randomRow * _bat.Height);
+
+                AssignRandomBatVelocity();
+            }
+        }
+
+        void CheckAndMoveBackSlimeIfOffScreen()
+        {
+            if (slimeBounds.Left < screenBounds.Left)
+            {
+                _slimePosition.X = screenBounds.Left;
+            }
+            else if (slimeBounds.Right > screenBounds.Right)
+            {
+                _slimePosition.X = screenBounds.Right - _slime.Width;
+            }
+
+            if (slimeBounds.Top < screenBounds.Top)
+            {
+                _slimePosition.Y = screenBounds.Top;
+            }
+            else if (slimeBounds.Bottom > screenBounds.Bottom)
+            {
+                _slimePosition.Y = screenBounds.Bottom - _slime.Height;
+            }
+        }
+
+        void CheckAndReflectBatIfOffScreen()
+        {
+            if (batBounds.Left < screenBounds.Left)
+            {
+                normal.X = Vector2.UnitX.X;
+                newBatPosition.X = screenBounds.Left;
+            }
+            else if (batBounds.Right > screenBounds.Right)
+            {
+                normal.X = -Vector2.UnitX.X;
+                newBatPosition.X = screenBounds.Right - _bat.Width;
+            }
+
+            if (batBounds.Top < screenBounds.Top)
+            {
+                normal.Y = Vector2.UnitY.Y;
+                newBatPosition.Y = screenBounds.Top;
+            }
+            else if (batBounds.Bottom > screenBounds.Bottom)
+            {
+                normal.Y = -Vector2.UnitY.Y;
+                newBatPosition.Y = screenBounds.Bottom - _bat.Height;
+            }
+
+            if (normal != Vector2.Zero)
+            {
+                _batVelocity = Vector2.Reflect(_batVelocity, normal);
+            }
+
+            _batPosition = newBatPosition;
+        }
+    }
+
+    private void AssignRandomBatVelocity()
+    {
+        var angle = (float)(Random.Shared.NextDouble() * Math.PI * 2);
+
+        var direction = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+
+        _batVelocity = direction * MovementSpeed;
     }
 
     private void CheckKeyboardInput()
@@ -122,7 +235,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         using (SpriteBatch.DrawContext(samplerState: SamplerState.PointClamp))
         {
             _slime.Draw(SpriteBatch, _slimePosition);
-            _bat.Draw(SpriteBatch, new Vector2(_slime.Width + 10, 0));
+            _bat.Draw(SpriteBatch, _batPosition);
         }
 
         base.Draw(gameTime);
