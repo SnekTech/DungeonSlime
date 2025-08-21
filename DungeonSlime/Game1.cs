@@ -24,6 +24,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
     private SoundEffect _bounceSoundEffect = null!;
     private SoundEffect _collectSoundEffect = null!;
+    private Song _themeSong = null!;
 
     protected override void Initialize()
     {
@@ -43,6 +44,8 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         _batPosition = new Vector2(_roomBounds.Left, _roomBounds.Top);
 
         AssignRandomBatVelocity();
+        
+        Audio.PlaySong(_themeSong);
     }
 
     protected override void LoadContent()
@@ -59,22 +62,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
         _bounceSoundEffect = Content.Load<SoundEffect>("audio/bounce");
         _collectSoundEffect = Content.Load<SoundEffect>("audio/collect");
-
-        LoadAndPlayTheThemeSong();
-        return;
-
-        void LoadAndPlayTheThemeSong()
-        {
-            var theme = Content.Load<Song>("audio/theme");
-
-            if (MediaPlayer.State == MediaState.Playing)
-            {
-                MediaPlayer.Stop();
-            }
-
-            MediaPlayer.Play(theme);
-            MediaPlayer.IsRepeating = true;
-        }
+        _themeSong = Content.Load<Song>("audio/theme");
     }
 
     protected override void Update(GameTime gameTime)
@@ -130,7 +118,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
                 AssignRandomBatVelocity();
 
-                _collectSoundEffect.Play();
+                Audio.PlaySoundEffect(_collectSoundEffect);
             }
         }
 
@@ -183,7 +171,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
             {
                 _batVelocity = Vector2.Reflect(_batVelocity, normal);
 
-                _bounceSoundEffect.Play();
+                Audio.PlaySoundEffect(_bounceSoundEffect);
             }
 
             _batPosition = newBatPosition;
@@ -201,30 +189,58 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
     private void CheckKeyboardInput()
     {
-        var speed = MovementSpeed;
-        if (Input.Keyboard.IsKeyDown(Keys.Space))
+        CheckMoveInput();
+        CheckAudioInput();
+        
+        return;
+
+        void CheckMoveInput()
         {
-            speed *= 1.5f;
+            var speed = MovementSpeed;
+            if (Input.Keyboard.IsKeyDown(Keys.Space))
+            {
+                speed *= 1.5f;
+            }
+
+            if (Input.Keyboard.IsKeyDown(Keys.W) || Input.Keyboard.IsKeyDown(Keys.Up))
+            {
+                _slimePosition.Y -= speed;
+            }
+
+            if (Input.Keyboard.IsKeyDown(Keys.S) || Input.Keyboard.IsKeyDown(Keys.Down))
+            {
+                _slimePosition.Y += speed;
+            }
+
+            if (Input.Keyboard.IsKeyDown(Keys.A) || Input.Keyboard.IsKeyDown(Keys.Left))
+            {
+                _slimePosition.X -= speed;
+            }
+
+            if (Input.Keyboard.IsKeyDown(Keys.D) || Input.Keyboard.IsKeyDown(Keys.Right))
+            {
+                _slimePosition.X += speed;
+            }
         }
 
-        if (Input.Keyboard.IsKeyDown(Keys.W) || Input.Keyboard.IsKeyDown(Keys.Up))
+        void CheckAudioInput()
         {
-            _slimePosition.Y -= speed;
-        }
+            if (Input.Keyboard.WasKeyJustPressed(Keys.M))
+            {
+                Audio.ToggleMute();
+            }
 
-        if (Input.Keyboard.IsKeyDown(Keys.S) || Input.Keyboard.IsKeyDown(Keys.Down))
-        {
-            _slimePosition.Y += speed;
-        }
+            if (Input.Keyboard.WasKeyJustPressed(Keys.OemPlus))
+            {
+                Audio.SongVolume += 0.1f;
+                Audio.SoundEffectVolume += 0.1f;
+            }
 
-        if (Input.Keyboard.IsKeyDown(Keys.A) || Input.Keyboard.IsKeyDown(Keys.Left))
-        {
-            _slimePosition.X -= speed;
-        }
-
-        if (Input.Keyboard.IsKeyDown(Keys.D) || Input.Keyboard.IsKeyDown(Keys.Right))
-        {
-            _slimePosition.X += speed;
+            if (Input.Keyboard.WasKeyJustPressed(Keys.OemMinus))
+            {
+                Audio.SongVolume -= 0.1f;
+                Audio.SoundEffectVolume -= 0.1f;
+            }
         }
     }
 

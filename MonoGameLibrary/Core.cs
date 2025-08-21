@@ -2,18 +2,19 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGameLibrary.Audio;
 using MonoGameLibrary.Input;
 
 namespace MonoGameLibrary;
 
 public class Core : Game
 {
-    internal static Core s_instance = null!;
+    private static Core _instance = null!;
 
     /// <summary>
     /// Gets a reference to the Core instance.
     /// </summary>
-    public static Core Instance => s_instance;
+    public static Core Instance => _instance;
 
     /// <summary>
     /// Gets the graphics device manager to control the presentation of graphics.
@@ -39,6 +40,8 @@ public class Core : Game
 
     public static bool ExitOnEscape { get; set; } = true;
 
+    public static AudioController Audio { get; private set; } = null!;
+
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -49,13 +52,13 @@ public class Core : Game
     public Core(string title, int width, int height, bool fullScreen)
     {
         // Ensure that multiple cores are not created.
-        if (s_instance != null)
+        if (_instance != null)
         {
             throw new InvalidOperationException($"Only a single Core instance can be created");
         }
 
         // Store reference to engine for global member access.
-        s_instance = this;
+        _instance = this;
 
         // Create a new graphics device manager.
         Graphics = new GraphicsDeviceManager(this);
@@ -94,11 +97,22 @@ public class Core : Game
         SpriteBatch = new SpriteBatch(GraphicsDevice);
 
         Input = new InputManager();
+
+        Audio = new AudioController();
+    }
+
+    protected override void UnloadContent()
+    {
+        Audio.Dispose();
+
+        base.UnloadContent();
     }
 
     protected override void Update(GameTime gameTime)
     {
         Input.Update(gameTime);
+
+        Audio.Update();
 
         if (ExitOnEscape && Input.Keyboard.IsKeyDown(Keys.Escape))
         {
