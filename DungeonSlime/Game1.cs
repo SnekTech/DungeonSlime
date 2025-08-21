@@ -17,11 +17,25 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
     private Vector2 _batPosition;
     private Vector2 _batVelocity;
 
+    private TileMap _tileMap = null!;
+    private Rectangle _roomBounds;
+
     protected override void Initialize()
     {
         base.Initialize();
 
-        _batPosition = new Vector2(_slime.Width + 10, 0);
+        var screenBounds = GraphicsDevice.PresentationParameters.Bounds;
+        _roomBounds = new Rectangle(
+            (int)_tileMap.TileWidth,
+            (int)_tileMap.TileHeight,
+            screenBounds.Width - (int)_tileMap.TileWidth * 2,
+            screenBounds.Height - (int)_tileMap.TileHeight * 2
+        );
+
+        var (centerRow, centerColumn) = (_tileMap.Rows / 2, _tileMap.Columns / 2);
+        _slimePosition = new Vector2(centerColumn * _tileMap.TileWidth, centerRow * _tileMap.TileHeight);
+
+        _batPosition = new Vector2(_roomBounds.Left, _roomBounds.Top);
 
         AssignRandomBatVelocity();
     }
@@ -34,6 +48,9 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         _slime.Scale = new Vector2(4f, 4f);
         _bat = atlas.CreateAnimatedSprite("bat-animation");
         _bat.Scale = new Vector2(4f, 4f);
+        
+        _tileMap = TileMap.FromFile(Content, "images/tilemap-definition.xml");
+        _tileMap.Scale = new Vector2(4, 4);
     }
 
     protected override void Update(GameTime gameTime)
@@ -45,7 +62,6 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         CheckGamePadInput();
 
         var (screenWidth, screenHeight) = GraphicsDevice.Resolution();
-        var screenBounds = new Rectangle(0, 0, screenWidth, screenHeight);
 
         var slimeBoundsCenter = new Vector2(
             _slimePosition.X + _slime.Width * 0.5f,
@@ -94,47 +110,47 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
         void CheckAndMoveBackSlimeIfOffScreen()
         {
-            if (slimeBounds.Left < screenBounds.Left)
+            if (slimeBounds.Left < _roomBounds.Left)
             {
-                _slimePosition.X = screenBounds.Left;
+                _slimePosition.X = _roomBounds.Left;
             }
-            else if (slimeBounds.Right > screenBounds.Right)
+            else if (slimeBounds.Right > _roomBounds.Right)
             {
-                _slimePosition.X = screenBounds.Right - _slime.Width;
+                _slimePosition.X = _roomBounds.Right - _slime.Width;
             }
 
-            if (slimeBounds.Top < screenBounds.Top)
+            if (slimeBounds.Top < _roomBounds.Top)
             {
-                _slimePosition.Y = screenBounds.Top;
+                _slimePosition.Y = _roomBounds.Top;
             }
-            else if (slimeBounds.Bottom > screenBounds.Bottom)
+            else if (slimeBounds.Bottom > _roomBounds.Bottom)
             {
-                _slimePosition.Y = screenBounds.Bottom - _slime.Height;
+                _slimePosition.Y = _roomBounds.Bottom - _slime.Height;
             }
         }
 
         void CheckAndReflectBatIfOffScreen()
         {
-            if (batBounds.Left < screenBounds.Left)
+            if (batBounds.Left < _roomBounds.Left)
             {
                 normal.X = Vector2.UnitX.X;
-                newBatPosition.X = screenBounds.Left;
+                newBatPosition.X = _roomBounds.Left;
             }
-            else if (batBounds.Right > screenBounds.Right)
+            else if (batBounds.Right > _roomBounds.Right)
             {
                 normal.X = -Vector2.UnitX.X;
-                newBatPosition.X = screenBounds.Right - _bat.Width;
+                newBatPosition.X = _roomBounds.Right - _bat.Width;
             }
 
-            if (batBounds.Top < screenBounds.Top)
+            if (batBounds.Top < _roomBounds.Top)
             {
                 normal.Y = Vector2.UnitY.Y;
-                newBatPosition.Y = screenBounds.Top;
+                newBatPosition.Y = _roomBounds.Top;
             }
-            else if (batBounds.Bottom > screenBounds.Bottom)
+            else if (batBounds.Bottom > _roomBounds.Bottom)
             {
                 normal.Y = -Vector2.UnitY.Y;
-                newBatPosition.Y = screenBounds.Bottom - _bat.Height;
+                newBatPosition.Y = _roomBounds.Bottom - _bat.Height;
             }
 
             if (normal != Vector2.Zero)
@@ -234,6 +250,7 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
         using (SpriteBatch.DrawContext(samplerState: SamplerState.PointClamp))
         {
+            _tileMap.Draw(SpriteBatch);
             _slime.Draw(SpriteBatch, _slimePosition);
             _bat.Draw(SpriteBatch, _batPosition);
         }
