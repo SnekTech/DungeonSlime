@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary.Audio;
 using MonoGameLibrary.Input;
+using MonoGameLibrary.Scenes;
 
 namespace MonoGameLibrary;
 
@@ -15,6 +16,9 @@ public class Core : Game
     /// Gets a reference to the Core instance.
     /// </summary>
     public static Core Instance => _instance;
+
+    private static Scene? _activeScene;
+    private static Scene? _nextScene;
 
     /// <summary>
     /// Gets the graphics device manager to control the presentation of graphics.
@@ -119,6 +123,40 @@ public class Core : Game
             Exit();
         }
 
+        if (_nextScene is not null)
+        {
+            TransitionScene();
+        }
+
+        _activeScene?.Update(gameTime);
+
         base.Update(gameTime);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        _activeScene?.Draw(gameTime);
+
+        base.Draw(gameTime);
+    }
+
+    public static void ChangeScene(Scene next)
+    {
+        if (_activeScene != next)
+        {
+            _nextScene = next;
+        }
+    }
+
+    public static void TransitionScene()
+    {
+        _activeScene?.Dispose();
+
+        GC.Collect();
+
+        _activeScene = _nextScene;
+        _nextScene = null;
+
+        _activeScene?.Initialize();
     }
 }
