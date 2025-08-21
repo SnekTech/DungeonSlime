@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
@@ -19,6 +21,9 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
 
     private TileMap _tileMap = null!;
     private Rectangle _roomBounds;
+
+    private SoundEffect _bounceSoundEffect = null!;
+    private SoundEffect _collectSoundEffect = null!;
 
     protected override void Initialize()
     {
@@ -48,9 +53,28 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
         _slime.Scale = new Vector2(4f, 4f);
         _bat = atlas.CreateAnimatedSprite("bat-animation");
         _bat.Scale = new Vector2(4f, 4f);
-        
+
         _tileMap = TileMap.FromFile(Content, "images/tilemap-definition.xml");
         _tileMap.Scale = new Vector2(4, 4);
+
+        _bounceSoundEffect = Content.Load<SoundEffect>("audio/bounce");
+        _collectSoundEffect = Content.Load<SoundEffect>("audio/collect");
+
+        LoadAndPlayTheThemeSong();
+        return;
+
+        void LoadAndPlayTheThemeSong()
+        {
+            var theme = Content.Load<Song>("audio/theme");
+
+            if (MediaPlayer.State == MediaState.Playing)
+            {
+                MediaPlayer.Stop();
+            }
+
+            MediaPlayer.Play(theme);
+            MediaPlayer.IsRepeating = true;
+        }
     }
 
     protected override void Update(GameTime gameTime)
@@ -105,6 +129,8 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
                 _batPosition = new Vector2(randomColumn * _bat.Width, randomRow * _bat.Height);
 
                 AssignRandomBatVelocity();
+
+                _collectSoundEffect.Play();
             }
         }
 
@@ -156,6 +182,8 @@ public class Game1() : Core("Dungeon Slime", 1280, 720, false)
             if (normal != Vector2.Zero)
             {
                 _batVelocity = Vector2.Reflect(_batVelocity, normal);
+
+                _bounceSoundEffect.Play();
             }
 
             _batPosition = newBatPosition;
