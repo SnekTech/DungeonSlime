@@ -6,6 +6,7 @@ namespace MonoGameLibrary.Scenes;
 public abstract class Scene : IDisposable
 {
     protected ContentManager Content { get; }
+    protected static ContentManager GlobalContent => Core.Content;
 
     public bool IsDisposed { get; private set; }
 
