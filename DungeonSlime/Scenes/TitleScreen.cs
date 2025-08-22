@@ -26,6 +26,11 @@ public class TitleScreen : Scene
     private Vector2 _pressEnterPos;
     private Vector2 _pressEnterOrigin;
 
+    private Texture2D _backgroundPattern = null!;
+    private Rectangle _backgroundDestination;
+    private Vector2 _backgroundOffset;
+    private float _scrollSpeed = 50;
+
     protected override void OnInitialize()
     {
         Core.ExitOnEscape = true;
@@ -41,6 +46,9 @@ public class TitleScreen : Scene
         size = _font.MeasureString(PressEnterText);
         _pressEnterPos = new Vector2(640, 620);
         _pressEnterOrigin = size * 0.5f;
+
+        _backgroundOffset = Vector2.Zero;
+        _backgroundDestination = Core.GraphicsDevice.PresentationParameters.Bounds;
     }
 
     public override void LoadContent()
@@ -48,8 +56,9 @@ public class TitleScreen : Scene
         // this one can be reused, so use the global content manager
         // to cache it on load
         _font = GlobalContent.Load<SpriteFont>("fonts/04B_30");
-
         _font5x = Content.Load<SpriteFont>("fonts/04B_30_5x");
+
+        _backgroundPattern = Content.Load<Texture2D>("images/background-pattern");
     }
 
     protected override void OnUnloadContent()
@@ -62,6 +71,13 @@ public class TitleScreen : Scene
         {
             Core.ChangeScene(new GameScene());
         }
+
+        var offset = _scrollSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _backgroundOffset.X -= offset;
+        _backgroundOffset.Y -= offset;
+
+        _backgroundOffset.X %= _backgroundPattern.Width;
+        _backgroundOffset.Y %= _backgroundPattern.Height;
     }
 
     public override void Draw(GameTime gameTime)
@@ -69,6 +85,13 @@ public class TitleScreen : Scene
         Core.GraphicsDevice.Clear(new Color(32, 40, 78, 255));
 
         var spriteBatch = Core.SpriteBatch;
+
+        using (spriteBatch.DrawContext(samplerState: SamplerState.PointWrap))
+        {
+            spriteBatch.Draw(_backgroundPattern, _backgroundDestination,
+                new Rectangle(_backgroundOffset.ToPoint(), _backgroundDestination.Size), Color.White * 0.5f);
+        }
+
         using (spriteBatch.DrawContext(samplerState: SamplerState.PointClamp))
         {
             var dropShadowColor = Color.Black * 0.5f;
