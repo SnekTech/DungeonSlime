@@ -25,6 +25,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Dumpify" Version="0.6.6" />
+        <PackageReference Include="Gum.MonoGame" Version="2025.8.19.1" />
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*"/>
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
     </ItemGroup>

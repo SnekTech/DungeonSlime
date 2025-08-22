@@ -118,7 +118,7 @@ public class Core : Game
 
         Audio.Update();
 
-        if (ExitOnEscape && Input.Keyboard.IsKeyDown(Keys.Escape))
+        if (ExitOnEscape && Input.Keyboard.WasKeyJustPressed(Keys.Escape))
         {
             Exit();
         }

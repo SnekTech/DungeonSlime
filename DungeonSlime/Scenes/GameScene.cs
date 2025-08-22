@@ -1,10 +1,16 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Dumpify;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Scenes;
+using Gum.DataTypes;
+using Gum.Wireframe;
+using MonoGameGum;
+using Gum.Forms.Controls;
+using MonoGameGum.GueDeriving;
 
 namespace DungeonSlime.Scenes;
 
@@ -52,6 +58,18 @@ public class GameScene : Scene
 // Defines the origin used when drawing the score text.
     private Vector2 _scoreTextOrigin;
 
+    // A reference to the pause panel UI element so we can set its visibility
+// when the game is paused.
+    private Panel _pausePanel = null!;
+
+// A reference to the resume button UI element so we can focus it
+// when the game is paused.
+    private Button _resumeButton = null!;
+
+// The UI sound effect to play when a UI event is triggered.
+    private SoundEffect _uiSoundEffect = null!;
+
+
     protected override void OnInitialize()
     {
         Core.ExitOnEscape = false;
@@ -81,8 +99,9 @@ public class GameScene : Scene
         var scoreTextYOrigin = _font.MeasureString("Score").Y * 0.5f;
         _scoreTextOrigin = new Vector2(0, scoreTextYOrigin);
 
-        // Assign the initial random velocity to the bat.
         AssignRandomBatVelocity();
+        
+        InitializeUI();
     }
 
     public override void LoadContent()
@@ -102,7 +121,72 @@ public class GameScene : Scene
         _collectSoundEffect = Content.Load<SoundEffect>("audio/collect");
 
         _font = GlobalContent.Load<SpriteFont>("fonts/04B_30");
+        
+        _uiSoundEffect = GlobalContent.Load<SoundEffect>("audio/ui");
     }
+
+    private void CreatePausePanel()
+    {
+        _pausePanel = new Panel();
+        _pausePanel.Anchor(Anchor.Center);
+        _pausePanel.Visual.WidthUnits = DimensionUnitType.Absolute;
+        _pausePanel.Visual.HeightUnits = DimensionUnitType.Absolute;
+        _pausePanel.Visual.Height = 70;
+        _pausePanel.Visual.Width = 264;
+        _pausePanel.IsVisible = false;
+        _pausePanel.AddToRoot();
+
+        var background = new ColoredRectangleRuntime();
+        background.Dock(Dock.Fill);
+        background.Color = Color.DarkBlue;
+        _pausePanel.AddChild(background);
+
+        var textInstance = new TextRuntime();
+        textInstance.Text = "PAUSED";
+        textInstance.X = 10f;
+        textInstance.Y = 10f;
+        _pausePanel.AddChild(textInstance);
+
+        _resumeButton = new Button();
+        _resumeButton.Text = "RESUME";
+        _resumeButton.Anchor(Anchor.BottomLeft);
+        _resumeButton.Visual.X = 9f;
+        _resumeButton.Visual.Y = -9f;
+        _resumeButton.Visual.Width = 80;
+        _resumeButton.Click += HandleResumeButtonClicked;
+        _pausePanel.AddChild(_resumeButton);
+
+        var quitButton = new Button();
+        quitButton.Text = "QUIT";
+        quitButton.Anchor(Anchor.BottomRight);
+        quitButton.Visual.X = -9f;
+        quitButton.Visual.Y = -9f;
+        quitButton.Width = 80;
+        quitButton.Click += HandleQuitButtonClicked;
+
+        _pausePanel.AddChild(quitButton);
+    }
+
+    private void HandleQuitButtonClicked(object? sender, EventArgs e)
+    {
+        Core.Audio.PlaySoundEffect(_uiSoundEffect);
+        Core.ChangeScene(new TitleScene());
+    }
+
+    private void HandleResumeButtonClicked(object? sender, EventArgs e)
+    {
+        Core.Audio.PlaySoundEffect(_uiSoundEffect);
+
+        _pausePanel.IsVisible = false;
+    }
+
+    private void InitializeUI()
+    {
+        GumService.Default.Root.Children.Clear();
+        
+        CreatePausePanel();
+    }
+
 
     protected override void OnUnloadContent()
     {
@@ -110,6 +194,10 @@ public class GameScene : Scene
 
     public override void Update(GameTime gameTime)
     {
+        GumService.Default.Update(gameTime);
+        
+        if (_pausePanel.IsVisible) return;
+        
         _slime.Update(gameTime);
         _bat.Update(gameTime);
 
@@ -231,7 +319,7 @@ public class GameScene : Scene
     {
         if (Core.Input.Keyboard.WasKeyJustPressed(Keys.Escape))
         {
-            Core.ChangeScene(new TitleScreen());
+            PauseGame();
         }
 
         var keyboard = Core.Input.Keyboard;
@@ -295,6 +383,11 @@ public class GameScene : Scene
     {
         var gamePadOne = Core.Input.GetGamePad(PlayerIndex.One);
 
+        if (gamePadOne.WasButtonJustPressed(Buttons.Start))
+        {
+            PauseGame();
+        }
+
         var speed = MovementSpeed;
         if (gamePadOne.IsButtonDown(Buttons.A))
         {
@@ -335,6 +428,12 @@ public class GameScene : Scene
         }
     }
 
+    private void PauseGame()
+    {
+        _pausePanel.IsVisible = true;
+        _resumeButton.IsVisible = true;
+    }
+
     public override void Draw(GameTime gameTime)
     {
         Core.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -357,5 +456,7 @@ public class GameScene : Scene
                 0
             );
         }
+        
+        GumService.Default.Draw();
     }
 }
